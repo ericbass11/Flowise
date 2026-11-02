@@ -95,6 +95,7 @@ export class Room {
     pauseDeadline: number | null = null
     pausedBy: string | null = null
     result: RoomPayload['result'] = null
+    startedAt: number | null = null
     private memories: BotMemory[] = SEATS.map(() => ({ partnerSignals: [] }))
     private timer: NodeJS.Timeout | null = null
     private pauseTimer: NodeJS.Timeout | null = null
@@ -159,6 +160,7 @@ export class Room {
         if (this.seats.some((s) => s.kind === 'empty')) throw new RuleError('Preencha os 4 lugares (chame robôs!)')
         this.ranked = ranked
         this.status = 'playing'
+        this.startedAt = Date.now()
         const seed = crypto.randomInt(0, 2 ** 31)
         this.state = newGame(seed, crypto.randomInt(0, 4) as Seat)
         this.pushLog(this.describe(this.state.events))
@@ -257,6 +259,7 @@ export class Room {
                     scores: s.scores,
                     winner: s.winner!,
                     walkover: isWalkover,
+                    durationSec: this.startedAt ? Math.round((Date.now() - this.startedAt) / 1000) : undefined,
                     seats: this.seats.map((info, seat) => ({
                         seat,
                         userId: info.kind === 'human' ? info.userId : null,

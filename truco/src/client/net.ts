@@ -12,6 +12,7 @@ export interface Me {
     elo: number
     wins: number
     losses: number
+    isAdmin?: boolean
 }
 
 export interface QueueInfo {

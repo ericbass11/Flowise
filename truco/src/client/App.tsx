@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { AdminDashboard } from './Admin'
 import { Chat, Table } from './Table'
 import { Me, QueueInfo, RoomPayload, api, emit, getSocket, useNow } from './net'
 
@@ -17,9 +18,13 @@ export function App() {
             .catch(() => setMe(null))
     }, [])
     useEffect(refreshMe, [refreshMe])
+    useEffect(() => {
+        fetch('/api/track', { method: 'POST', credentials: 'include' }).catch(() => {})
+    }, [])
 
     if (me === undefined) return <div className='splash'>Abrindo o boteco…</div>
     if (me === null) return <Login onLogin={refreshMe} />
+    if (location.pathname.startsWith('/admin')) return <AdminDashboard />
     return <Home me={me} refreshMe={refreshMe} />
 }
 
@@ -133,6 +138,11 @@ function Home({ me, refreshMe }: { me: Me; refreshMe: () => void }) {
                             Elo {me.elo} · {me.wins}V {me.losses}D
                         </small>
                     </div>
+                    {me.isAdmin && (
+                        <a className='btn btn--sm' href='/admin'>
+                            Painel
+                        </a>
+                    )}
                     <button
                         type='button'
                         className='btn btn--ghost btn--sm'

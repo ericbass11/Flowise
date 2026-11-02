@@ -91,6 +91,7 @@ export function authRouter(cfg: AuthConfig, db: Db): Router {
                 name: info.name || info.email.split('@')[0],
                 avatar: info.picture ?? null
             })
+            db.recordEvent('login', user.id)
             res.cookie(SESSION_COOKIE, signSession(cfg, user.id), cookieOpts)
             res.redirect('/')
         } catch (e) {
@@ -107,6 +108,7 @@ export function authRouter(cfg: AuthConfig, db: Db): Router {
             .slice(0, 24)
         if (!name) return res.status(400).json({ error: 'Informe um nome' })
         const user = db.upsertUser({ googleId: `dev:${name.toLowerCase()}`, email: `${name}@dev.local`, name, avatar: null })
+        db.recordEvent('login', user.id)
         res.cookie(SESSION_COOKIE, signSession(cfg, user.id), cookieOpts)
         res.json({ ok: true })
     })

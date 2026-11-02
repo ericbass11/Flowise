@@ -45,6 +45,16 @@ No [Google Cloud Console](https://console.cloud.google.com/apis/credentials) cri
 *OAuth client ID* do tipo **Web** com a URI de redirecionamento
 `${PUBLIC_URL}/auth/google/callback`.
 
+## Painel de KPIs (`/admin`)
+
+Acessos, contas, jogos e pessoas em tempo real: online agora, mesas em jogo, fila, visitas e
+visitantes únicos, contas novas e conversão, ativos no dia/semana/mês, horário de pico, partidas por
+tipo, duração média, W.O., top Elo e partidas recentes (períodos de 7, 30 ou 90 dias).
+
+Acesso liberado para os e-mails em `ADMIN_EMAILS` (separados por vírgula). Em desenvolvimento,
+com `ADMIN_EMAILS` vazio, qualquer login de teste vê o painel. O botão **Painel** aparece no topo
+para quem tem acesso.
+
 ## Testes
 
 ```bash

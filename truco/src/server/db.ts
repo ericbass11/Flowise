@@ -60,17 +60,41 @@ export class Db {
                 eloAfter INTEGER,
                 PRIMARY KEY (matchId, seat)
             );
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ts TEXT NOT NULL DEFAULT (datetime('now')),
+                kind TEXT NOT NULL,
+                userId INTEGER,
+                visitorId TEXT
+            );
+            CREATE INDEX IF NOT EXISTS events_ts ON events(ts, kind);
+            CREATE INDEX IF NOT EXISTS matches_created ON matches(createdAt);
         `)
+        const cols = (this.db.prepare('PRAGMA table_info(matches)').all() as { name: string }[]).map((c) => c.name)
+        if (!cols.includes('durationSec')) this.db.exec('ALTER TABLE matches ADD COLUMN durationSec INTEGER')
+    }
+
+    /** Registra um evento de uso: 'visit' | 'session' | 'login' | 'signup'. */
+    recordEvent(kind: string, userId: number | null, visitorId: string | null = null): void {
+        this.db.prepare('INSERT INTO events (kind, userId, visitorId) VALUES (?, ?, ?)').run(kind, userId, visitorId)
+    }
+
+    /** Acesso bruto para consultas de estatísticas. */
+    get raw(): DatabaseSync {
+        return this.db
     }
 
     upsertUser(p: { googleId: string; email: string; name: string; avatar: string | null }): User {
+        const existed = this.db.prepare('SELECT 1 FROM users WHERE googleId = ?').get(p.googleId)
         this.db
             .prepare(
                 `INSERT INTO users (googleId, email, name, avatar) VALUES (?, ?, ?, ?)
                  ON CONFLICT(googleId) DO UPDATE SET email = excluded.email, name = excluded.name, avatar = excluded.avatar`
             )
             .run(p.googleId, p.email, p.name, p.avatar)
-        return this.db.prepare('SELECT * FROM users WHERE googleId = ?').get(p.googleId) as unknown as User
+        const user = this.db.prepare('SELECT * FROM users WHERE googleId = ?').get(p.googleId) as unknown as User
+        if (!existed) this.recordEvent('signup', user.id)
+        return user
     }
 
     getUser(id: number): User | undefined {
@@ -116,6 +140,7 @@ export class Db {
         winner: 0 | 1
         walkover: boolean
         seats: MatchSeatRecord[]
+        durationSec?: number
     }): number {
         const humans = p.seats.filter((s) => s.userId !== null)
         const before = new Map<number, number>()
@@ -133,8 +158,8 @@ export class Db {
         this.db.exec('BEGIN')
         try {
             const res = this.db
-                .prepare('INSERT INTO matches (kind, ranked, scoreA, scoreB, winnerTeam, walkover) VALUES (?, ?, ?, ?, ?, ?)')
-                .run(p.kind, p.ranked ? 1 : 0, p.scores[0], p.scores[1], p.winner, p.walkover ? 1 : 0)
+                .prepare('INSERT INTO matches (kind, ranked, scoreA, scoreB, winnerTeam, walkover, durationSec) VALUES (?, ?, ?, ?, ?, ?, ?)')
+                .run(p.kind, p.ranked ? 1 : 0, p.scores[0], p.scores[1], p.winner, p.walkover ? 1 : 0, p.durationSec ?? null)
             const matchId = Number(res.lastInsertRowid)
             const ins = this.db.prepare(
                 'INSERT INTO match_players (matchId, seat, team, userId, name, isBot, botLevel, eloBefore, eloAfter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'

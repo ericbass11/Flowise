@@ -15,6 +15,7 @@ if (!jwtSecret) {
 const { server } = createApp({
     dbFile: process.env.DATABASE_FILE ?? path.resolve('truco.db'),
     staticDir: path.resolve('dist/client'),
+    adminEmails: (process.env.ADMIN_EMAILS ?? '').split(','),
     auth: {
         jwtSecret,
         publicUrl: (process.env.PUBLIC_URL ?? (isDev ? 'http://localhost:5173' : `http://localhost:${PORT}`)).replace(/\/$/, ''),

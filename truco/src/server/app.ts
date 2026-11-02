@@ -10,12 +10,16 @@ import { BOT_LEVELS } from '../bots/bot'
 import { AuthConfig, SESSION_COOKIE, authRouter, parseCookies, verifySession } from './auth'
 import { Db } from './db'
 import { DEFAULT_TIMING, RoomManager, Timing, UserLite } from './rooms'
+import { computeStats } from './stats'
+import crypto from 'node:crypto'
 
 export interface AppOptions {
     auth: AuthConfig
     dbFile: string
     staticDir?: string
     timing?: Timing
+    /** E-mails com acesso ao painel /admin. Vazio + login de dev = qualquer um (só em desenvolvimento). */
+    adminEmails?: string[]
 }
 
 const actionSchema = z.discriminatedUnion('type', [
@@ -38,10 +42,42 @@ export function createApp(opts: AppOptions) {
         return uid ? db.getUser(uid) : undefined
     }
 
+    const adminEmails = (opts.adminEmails ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean)
+    const isAdmin = (email: string) => adminEmails.includes(email.toLowerCase()) || (adminEmails.length === 0 && opts.auth.devLogin)
+
     app.get('/api/me', (req, res) => {
         const u = currentUser(req)
         if (!u) return res.status(401).json({ error: 'não autenticado' })
-        res.json(u)
+        res.json({ ...u, isAdmin: isAdmin(u.email) })
+    })
+
+    // Registro de visita (página carregada). Visitante anônimo identificado por cookie.
+    app.post('/api/track', (req, res) => {
+        let vid = req.cookies?.truco_vid as string | undefined
+        if (!vid || !/^[a-f0-9]{32}$/.test(vid)) {
+            vid = crypto.randomBytes(16).toString('hex')
+            res.cookie('truco_vid', vid, { httpOnly: true, sameSite: 'lax', maxAge: 365 * 24 * 3600 * 1000, path: '/' })
+        }
+        db.recordEvent('visit', currentUser(req)?.id ?? null, vid)
+        res.status(204).end()
+    })
+
+    app.get('/api/admin/stats', (req, res) => {
+        const u = currentUser(req)
+        if (!u) return res.status(401).json({ error: 'não autenticado' })
+        if (!isAdmin(u.email)) return res.status(403).json({ error: 'sem permissão' })
+        const days = [7, 30, 90].includes(Number(req.query.days)) ? Number(req.query.days) : 30
+        const online = new Set<number>()
+        for (const sock of io.of('/').sockets.values()) if (sock.data.user) online.add(sock.data.user.id)
+        const active = [...mgr.rooms.values()].filter((r) => r.status === 'playing' || r.status === 'paused')
+        res.json(
+            computeStats(db, days, {
+                online: online.size,
+                tablesPlaying: active.length,
+                playersInGame: active.reduce((a, r) => a + r.humans().length, 0),
+                queue: mgr.queue.length
+            })
+        )
     })
     app.get('/api/ranking', (_req, res) => res.json(db.leaderboard()))
     app.get('/api/history', (req, res) => {
@@ -70,6 +106,7 @@ export function createApp(opts: AppOptions) {
     io.on('connection', (socket: Socket) => {
         const user = socket.data.user as UserLite
         socket.join(`u:${user.id}`)
+        db.recordEvent('session', user.id)
         mgr.onConnect(user)
 
         const handle =
