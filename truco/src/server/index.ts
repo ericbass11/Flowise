@@ -18,11 +18,14 @@ const { server } = createApp({
     adminEmails: (process.env.ADMIN_EMAILS ?? '').split(','),
     auth: {
         jwtSecret,
-        publicUrl: (process.env.PUBLIC_URL ?? (isDev ? 'http://localhost:5173' : `http://localhost:${PORT}`)).replace(/\/$/, ''),
+        // No Render, RENDER_EXTERNAL_URL traz a URL pública (https://<serviço>.onrender.com)
+        publicUrl: (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || (isDev ? 'http://localhost:5173' : `http://localhost:${PORT}`)).replace(/\/$/, ''),
         googleClientId: process.env.GOOGLE_CLIENT_ID,
         googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        devLogin: process.env.NODE_ENV === 'development'
-    }
+        // Login de teste (sem Google): sempre em dev; em produção só com TEST_LOGIN=true (ambiente de testes)
+        devLogin: process.env.NODE_ENV === 'development' || process.env.TEST_LOGIN === 'true'
+    },
+    openAdmin: process.env.NODE_ENV === 'development'
 })
 
 server.listen(PORT, () => console.log(`🃏 Truco do Boteco rodando em http://localhost:${PORT}`))

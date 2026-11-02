@@ -20,6 +20,8 @@ export interface AppOptions {
     timing?: Timing
     /** E-mails com acesso ao painel /admin. Vazio + login de dev = qualquer um (só em desenvolvimento). */
     adminEmails?: string[]
+    /** Só em desenvolvimento: sem ADMIN_EMAILS, qualquer login vê o painel. */
+    openAdmin?: boolean
 }
 
 const actionSchema = z.discriminatedUnion('type', [
@@ -33,6 +35,7 @@ const actionSchema = z.discriminatedUnion('type', [
 export function createApp(opts: AppOptions) {
     const db = new Db(opts.dbFile)
     const app = express()
+    app.set('trust proxy', 1)
     app.use(express.json())
     app.use(cookieParser())
     app.use(authRouter(opts.auth, db))
@@ -43,7 +46,7 @@ export function createApp(opts: AppOptions) {
     }
 
     const adminEmails = (opts.adminEmails ?? []).map((e) => e.trim().toLowerCase()).filter(Boolean)
-    const isAdmin = (email: string) => adminEmails.includes(email.toLowerCase()) || (adminEmails.length === 0 && opts.auth.devLogin)
+    const isAdmin = (email: string) => adminEmails.includes(email.toLowerCase()) || (adminEmails.length === 0 && !!opts.openAdmin)
 
     app.get('/api/me', (req, res) => {
         const u = currentUser(req)

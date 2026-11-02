@@ -13,6 +13,7 @@ beforeAll(async () => {
     ctx = createApp({
         dbFile: ':memory:',
         timing: fast,
+        openAdmin: true,
         auth: { jwtSecret: 'test', publicUrl: 'http://localhost', devLogin: true }
     })
     await new Promise<void>((r) => ctx.server.listen(0, () => r()))

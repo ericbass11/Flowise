@@ -72,7 +72,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
                             else setErr('Não deu para entrar')
                         }}
                     >
-                        <small className='muted'>Modo desenvolvimento</small>
+                        <small className='muted'>Login de teste (sem Google)</small>
                         <input value={name} onChange={(e) => setName(e.target.value)} placeholder='Seu apelido de teste' maxLength={24} />
                         <button className='btn' type='submit' disabled={!name.trim()}>
                             Entrar como teste

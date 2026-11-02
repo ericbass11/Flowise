@@ -39,6 +39,23 @@ docker run -p 3001:3001 -v truco-data:/data \
   -e GOOGLE_CLIENT_ID=... -e GOOGLE_CLIENT_SECRET=... truco-boteco
 ```
 
+### Render (deploy de teste)
+
+O arquivo [`render.yaml`](../render.yaml) na raiz do repositório cria o serviço sozinho:
+
+1. Em [render.com](https://render.com), entre com o GitHub e clique em **New → Blueprint**.
+2. Escolha o repositório e a branch; o Render lê o `render.yaml`.
+3. Preencha `ADMIN_EMAILS` (ex.: `seu-apelido-secreto@dev.local` enquanto usa o login de teste).
+   `GOOGLE_CLIENT_ID/SECRET` podem ficar vazios por enquanto.
+4. **Deploy**. O jogo fica em `https://truco-boteco.onrender.com` (ou nome parecido).
+
+Plano grátis: o serviço dorme após 15 min sem acesso (acorda em ~1 min) e o disco é temporário —
+contas, ranking e o histórico do painel **zeram a cada deploy/reinício**. Para guardar dados, use o
+plano pago com disco persistente (`DATABASE_FILE=/data/truco.db`).
+
+`TEST_LOGIN=true` libera o login sem Google para qualquer pessoa: use um apelido difícil de adivinhar
+no `ADMIN_EMAILS` e desligue (`false`) quando o Google estiver configurado.
+
 ### Google OAuth
 
 No [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crie um

@@ -1,0 +1,27 @@
+# Blueprint do Render para o Truco do Boteco (app em truco/).
+# Render → New → Blueprint → escolha este repositório e a branch.
+services:
+  - type: web
+    name: truco-boteco
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: truco
+    dockerfilePath: ./truco/Dockerfile
+    dockerContext: ./truco
+    healthCheckPath: /auth/config
+    autoDeployTrigger: commit
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      # Libera o "Entrar como teste" (sem Google) enquanto o jogo está em teste.
+      # Troque para "false" quando o login com Google estiver configurado.
+      - key: TEST_LOGIN
+        value: "true"
+      # E-mails com acesso ao /admin, separados por vírgula. O login de teste usa <nome>@dev.local.
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
