@@ -3,14 +3,14 @@
     --wood-2: #2b1a10;
     --cream: #fff5dc;
     --ink: #24170e;
-    --muted: #b9a58a;
+    --muted: #c9b79c;
     --beer: #f5b528;
     --beer-dark: #c98a0c;
     --red: #c8282b;
     --green: #2f8f4e;
     --us: #2fa3c9;
     --them: #e2573c;
-    --panel: rgba(30, 18, 10, 0.86);
+    --panel: rgba(36, 22, 13, 0.92);
     --panel-border: rgba(245, 181, 40, 0.35);
     --radius: 14px;
     --card-w: 72px;
@@ -23,11 +23,13 @@ html, body, #root { height: 100%; margin: 0; }
 body {
     font-family: 'Nunito', system-ui, sans-serif;
     color: var(--cream);
-    background-color: var(--wood-2);
+    background-color: #170e09;
     background-image:
-        repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 90px),
-        repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px),
-        linear-gradient(180deg, var(--wood-1), var(--wood-2));
+        radial-gradient(ellipse 90% 50% at 50% -5%, rgba(245, 181, 40, 0.14), transparent 70%),
+        radial-gradient(ellipse 120% 80% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 60%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 140px),
+        linear-gradient(180deg, #2a1810 0%, #1c110b 55%, #140c08 100%);
+    background-attachment: fixed;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
 }
@@ -157,13 +159,13 @@ input:focus { outline: none; border-color: var(--beer); }
 .card--playable { cursor: pointer; }
 .card--playable:hover { transform: translateY(-10px) rotate(-1deg); }
 .card--selected { outline: 3px dashed var(--muted); }
-.card--back { background: #7d1618; overflow: hidden; }
+.card--back { background: #1f4b5e; overflow: hidden; }
 .card__back-pattern {
     position: absolute; inset: 5px; border-radius: 6px; border: 2px solid rgba(255,245,220,.7);
     background: repeating-linear-gradient(45deg, rgba(255,245,220,.18) 0 6px, transparent 6px 12px), repeating-linear-gradient(-45deg, rgba(255,245,220,.18) 0 6px, transparent 6px 12px);
 }
 .card__peek { position: absolute; bottom: 4px; right: 5px; font-size: .65rem; color: #ffd; }
-.mini-back { display: inline-block; width: 14px; height: 20px; border-radius: 3px; background: #7d1618; border: 1px solid rgba(255,245,220,.6); margin: 0 1px; }
+.mini-back { display: inline-block; width: 14px; height: 20px; border-radius: 3px; background: #1f4b5e; border: 1px solid rgba(255,245,220,.85); margin: 0 1px; }
 
 /* ---------- mesa ---------- */
 .game { min-height: 100%; display: flex; flex-direction: column; max-width: 760px; margin: 0 auto; padding: 8px 10px 12px; gap: 8px; }
@@ -185,13 +187,12 @@ input:focus { outline: none; border-color: var(--beer); }
 .table-wrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 330px; }
 .table {
     position: relative; width: 100%; max-width: 620px; aspect-ratio: 1.15; max-height: 52vh; border-radius: 26px;
+    /* toalha xadrez discreta: dois vinhos próximos para as cartas claras saltarem */
     background:
-        repeating-linear-gradient(0deg, rgba(200,40,43,.85) 0 22px, transparent 22px 44px),
-        repeating-linear-gradient(90deg, rgba(200,40,43,.85) 0 22px, transparent 22px 44px),
-        #f3ead6;
-    box-shadow: 0 0 0 10px #5a3a1f, 0 0 0 13px #2b1a10, 0 20px 40px rgba(0,0,0,.6);
+        radial-gradient(ellipse at center, rgba(255, 220, 160, 0.10), rgba(0, 0, 0, 0.38) 88%),
+        repeating-conic-gradient(#7a1e21 0 25%, #68181b 0 50%) 0 0 / 52px 52px;
+    box-shadow: 0 0 0 10px #4a2f19, 0 0 0 13px #1a100a, 0 22px 44px rgba(0, 0, 0, 0.7);
 }
-.table::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(ellipse at center, rgba(255,255,255,.08), rgba(0,0,0,.28)); pointer-events: none; }
 .player { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 2; }
 .player--top { top: 8px; left: 50%; transform: translateX(-50%); }
 .player--left { left: 6px; top: 50%; transform: translateY(-50%); }
