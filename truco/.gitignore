@@ -3,3 +3,4 @@ dist
 *.db
 *.db-*
 .env
+!package-lock.json

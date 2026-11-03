@@ -1,0 +1,41 @@
+# Truco do Boteco em VPS: app + Caddy (HTTPS automático com Let's Encrypt).
+# Uso: ./install.sh (gera o .env e sobe tudo). Manual: docker compose up -d --build
+name: truco
+
+services:
+  app:
+    build:
+      context: ..
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_FILE: /data/truco.db
+      PUBLIC_URL: https://${DOMAIN}
+    volumes:
+      - truco-data:/data
+    # Sem Caddy (modo "porta"), o app fica só no localhost para um proxy seu (nginx etc.)
+    ports:
+      - "127.0.0.1:${APP_PORT:-3001}:3001"
+
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    profiles: ["caddy"]
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  truco-data:
+  caddy-data:
+  caddy-config:

@@ -39,6 +39,26 @@ docker run -p 3001:3001 -v truco-data:/data \
   -e GOOGLE_CLIENT_ID=... -e GOOGLE_CLIENT_SECRET=... truco-boteco
 ```
 
+### VPS própria (Contabo, etc.) — recomendado
+
+Numa VPS Ubuntu/Debian, como root:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ericbass11/Flowise/ccr-622c48ad-0c8zah/truco/deploy/install.sh | bash
+```
+
+O script instala o Docker, baixa o código em `/opt/truco`, gera `.env` com segredo e um apelido de
+admin, e sobe o app com **Caddy** (HTTPS automático). Sem domínio próprio, usa `<IP>.sslip.io`.
+Os dados (SQLite) ficam num volume Docker e **sobrevivem** a reinícios e atualizações.
+
+- Atualizar: rode o mesmo comando de novo.
+- Domínio próprio: aponte um registro A para o IP e rode com `DOMAIN=jogo.seudominio.com` (ou edite
+  `/opt/truco/truco/deploy/.env` e rode de novo).
+- Já tem nginx/apache nas portas 80/443? Use `MODE=porta` no `.env` e aponte seu proxy para
+  `127.0.0.1:3001` (com suporte a WebSocket).
+- Logs: `cd /opt/truco/truco/deploy && docker compose logs -f app`.
+- Backup do banco: `docker compose cp app:/data/truco.db ./backup.db`.
+
 ### Render (deploy de teste)
 
 O arquivo [`render.yaml`](../render.yaml) na raiz do repositório cria o serviço sozinho:
